@@ -1,5 +1,8 @@
 # OpenSpec MCP Server (AI Assistant Plugin)
 
+[![NPM Version](https://img.shields.io/npm/v/@igor-olikh/openspec-mcp-server?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/@igor-olikh/openspec-mcp-server)
+[![NPM Downloads](https://img.shields.io/npm/dt/@igor-olikh/openspec-mcp-server?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/@igor-olikh/openspec-mcp-server)
+
 Welcome! This is a simple bridge (plugin) that connects **[OpenSpec](https://github.com/Fission-AI/OpenSpec)** to your favorite AI coding assistant (like **Codex**, **Claude Desktop**, or **Cursor**).
 
 ## What is this and why do I need it?
