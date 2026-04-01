@@ -18,7 +18,7 @@ However, your AI doesn't automatically know how to use OpenSpec. **That is what 
 
 To use this, you need to tell your AI assistant where this server is located. The setup simply depends on which AI assistant you use.
 
-### Option 1: Connecting to IBM Bob (Recommended)
+### Option 1: Connecting to IBM Bob
 
 If you are using [IBM Bob](https://bob.ibm.com/):
 1. In the IBM Bob IDE, click the **three dots** next to the gear icon in the upper right corner of the chat window and select **MCP servers**.
