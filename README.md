@@ -59,6 +59,28 @@ If you prefer using the Claude Desktop application:
 ```
 3. Save the file and restart Claude Desktop.
 
+### Option 3: Connecting to IBM Bob
+
+If you are using [IBM Bob](https://bob.ibm.com/):
+1. In the IBM Bob IDE, click the **three dots** next to the gear icon in the upper right corner of the chat window and select **MCP servers**.
+2. Click **Open** next to "Global MCPs" to edit your settings file (usually saved at `~/.bob/settings/mcp_settings.json`).
+3. Add the `openspec` server to the `mcpServers` object:
+
+```json
+{
+  "mcpServers": {
+    "openspec": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@igor-olikh/openspec-mcp-server"
+      ]
+    }
+  }
+}
+```
+4. Save the file and restart IBM Bob!
+
 ---
 
 ## How do I use it?
