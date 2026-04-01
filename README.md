@@ -1,58 +1,91 @@
-# OpenSpec MCP Server
+# OpenSpec MCP Server (AI Assistant Plugin)
 
-A Model Context Protocol (MCP) server for [OpenSpec](https://github.com/Fission-AI/OpenSpec).
+Welcome! This is a simple bridge (plugin) that connects **[OpenSpec](https://github.com/Fission-AI/OpenSpec)** to your favorite AI coding assistant (like **Codex**, **Claude Desktop**, or **Cursor**).
 
-This MCP server provides tools to interface with the OpenSpec CLI directly from AI assistants via the standard Model Context Protocol. Rather than maintaining custom integrations or complex scripts, AI agents can use this MCP server to initiate changes, propose specs, validate rules, and commit completions using the well-defined OpenSpec process.
+## What is this and why do I need it?
+When you want your AI to build a new feature, you usually just type it into the chat. But as projects grow, the AI can forget things, get confused, or write messy code.
 
-## Supported Tools
+**OpenSpec** is a system that solves this. It forces the AI to create a clear "specification" (a plan) before it writes any code. It organizes your plan into neat folders (`proposal`, `design`, `tasks`) so you can review it.
 
-- **`openspec_init`**: Initialize OpenSpec in the current directory (`openspec init`).
-- **`openspec_update`**: Update OpenSpec instructions and settings inside the project (`openspec update`).
-- **`openspec_list`**: List active changes and specs (`openspec list`).
-- **`openspec_show`**: Display detailed info for a spec or change (`openspec show <name>`).
-- **`openspec_validate`**: Validate active changes against specifications (`openspec validate`).
-- **`openspec_archive`**: Mark tasks completely and archive the completed OpenSpec change (`openspec archive <name>`).
-- **`openspec_new_change`**: Create a new OpenSpec change branch logic/directory (`openspec new change <name>`).
-- **`openspec_status`**: Get a summary status over an active change proposal (`openspec status`).
-- **`openspec_instructions`**: Get AI enriched instructions for building particular artifacts (`openspec instructions <name>`).
+However, your AI doesn't automatically know how to use OpenSpec. **That is what this server does!** It gives your AI the "tools" it needs to automatically create these folders, list tasks, and mark them as complete as it writes code for you.
 
-## Running with MCP Clients
+---
+
+## How to Connect Your AI
+
+To use this, you need to tell your AI assistant where this server is located. The setup simply depends on which AI assistant you use.
+
+### Option 1: Connecting to Codex (Recommended)
+
+Codex has a built-in user interface to easily add these plugins. 
+You can add it quickly by running this terminal command:
 
 ```bash
-# General format for MCP clients to execute this server
-npx -y @igor-olikh/openspec-mcp-server <path_to_project>
+codex mcp add openspec-server node /Users/igorolikh/Documents/projects/private/openspec-mcp-server/dist/index.js
 ```
 
-### Example with Claude Desktop App
-Add this to your `claude_desktop_config.json`:
+**Or, manually through the Codex User Interface:**
+1. Open the **"Connect to a custom MCP"** box in Codex.
+2. **Name**: `openspec` 
+3. **Mode**: Leave as `STDIO`
+4. **Command to launch**: `node`
+5. **Arguments**: Click `+ Add argument` and paste exactly:
+   `/Users/igorolikh/Documents/projects/private/openspec-mcp-server/dist/index.js`
+6. **Working directory**: Leave this blank! (This allows Codex to dynamically use OpenSpec inside whichever project you currently have open).
+7. Save it!
+
+### Option 2: Connecting to Claude Desktop App
+
+If you prefer using the Claude Desktop application:
+1. Open your Claude configuration file (usually located at `~/Library/Application Support/Claude/claude_desktop_config.json` on Mac).
+2. Add the `openspec` server to it:
+
 ```json
 {
   "mcpServers": {
     "openspec": {
-      "command": "npx",
+      "command": "node",
       "args": [
-        "-y",
-        "@igor-olikh/openspec-mcp-server",
-        "/absolute/path/to/your/project"
+        "/Users/igorolikh/Documents/projects/private/openspec-mcp-server/dist/index.js"
       ]
     }
   }
 }
 ```
+3. Save the file and restart Claude Desktop.
 
-## Development
+---
 
-1. Install dependencies:
-```bash
-npm install
-```
+## How do I use it?
 
-2. Compile TypeScript:
-```bash
-npm run build
-```
+Once connected, you don't need to do anything technical. You just talk to your AI like normal, but ask it to use OpenSpec!
 
-3. Run locally:
-```bash
-npm run dev
-```
+**Example Chat Prompts:**
+* *"Hey Codex, I want to add a dark mode feature to this application. Please use OpenSpec to propose and validate it."*
+* *"What is the OpenSpec status of our current project?"*
+* *"List all the OpenSpec changes we are currently working on."*
+
+The AI will automatically use the tools below to handle the rest!
+
+---
+
+## For Developers (Under the Hood)
+
+This server exposes the official `@fission-ai/openspec` CLI commands as Model Context Protocol (MCP) JSON-RPC tools.
+
+**Available AI Tools:**
+- `openspec_init`: Starts OpenSpec in a project.
+- `openspec_new_change`: Creates a folder for a new feature proposal.
+- `openspec_status`: Checks how much of the feature is done.
+- `openspec_validate`: Checks if the code matches the plan.
+- `openspec_archive`: Marks the feature as 100% completed.
+- `openspec_list`: Shows all current tasks.
+- `openspec_show`: Reads a specific task.
+- `openspec_update`: Updates OpenSpec rules.
+- `openspec_instructions`: Reads AI instructions for building parts of the plan.
+
+### Development Setup
+If you want to modify this server's code:
+1. `npm install` (Installs dependencies)
+2. `npm run build` (Compiles the code)
+3. `npm run start` (Runs the server to test standard input/output)
