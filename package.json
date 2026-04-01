@@ -1,9 +1,25 @@
 {
   "name": "@igor-olikh/openspec-mcp-server",
-  "version": "1.0.0",
-  "description": "MCP server for OpenSpec",
+  "version": "1.0.1",
+  "description": "An MCP server that connects OpenSpec to AI assistants like Codex, Claude, and Cursor.",
   "main": "dist/index.js",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/igor-olikh/openspec-mcp-server.git"
+  },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "openspec",
+    "ai",
+    "codex",
+    "claude",
+    "cursor",
+    "fission"
+  ],
+  "author": "Igor Olikh",
+  "license": "MIT",
   "bin": {
     "openspec-mcp-server": "dist/index.js"
   },

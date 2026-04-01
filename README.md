@@ -21,16 +21,17 @@ Codex has a built-in user interface to easily add these plugins.
 You can add it quickly by running this terminal command:
 
 ```bash
-codex mcp add openspec-server node /Users/igorolikh/Documents/projects/private/openspec-mcp-server/dist/index.js
+codex mcp add openspec-server npx -y @igor-olikh/openspec-mcp-server
 ```
 
 **Or, manually through the Codex User Interface:**
 1. Open the **"Connect to a custom MCP"** box in Codex.
 2. **Name**: `openspec` 
 3. **Mode**: Leave as `STDIO`
-4. **Command to launch**: `node`
-5. **Arguments**: Click `+ Add argument` and paste exactly:
-   `/Users/igorolikh/Documents/projects/private/openspec-mcp-server/dist/index.js`
+4. **Command to launch**: `npx`
+5. **Arguments**: Click `+ Add argument` twice and paste exactly:
+   - First argument: `-y`
+   - Second argument: `@igor-olikh/openspec-mcp-server`
 6. **Working directory**: Leave this blank! (This allows Codex to dynamically use OpenSpec inside whichever project you currently have open).
 7. Save it!
 
@@ -44,9 +45,10 @@ If you prefer using the Claude Desktop application:
 {
   "mcpServers": {
     "openspec": {
-      "command": "node",
+      "command": "npx",
       "args": [
-        "/Users/igorolikh/Documents/projects/private/openspec-mcp-server/dist/index.js"
+        "-y",
+        "@igor-olikh/openspec-mcp-server"
       ]
     }
   }
