@@ -116,3 +116,14 @@ If you want to modify this server's code:
 1. `npm install` (Installs dependencies)
 2. `npm run build` (Compiles the code)
 3. `npm run start` (Runs the server to test standard input/output)
+
+---
+
+## Upcoming Features (Planned via OpenSpec)
+This server is actively evolving! The following features are currently being designed utilizing OpenSpec and will be implemented soon:
+
+- ⏳ **Built-in MCP Prompts**: A pre-made "cheat sheet" standard prompt (e.g., `openspec_kickoff`) that automatically injects massive hidden rules into your AI, steering it to behave perfectly when generating structured features.
+- ⏳ **Structured JSON Outputs**: Replacing raw, colorful terminal output with parsed JavaScript objects, preventing the AI from misreading states and reducing hallucinations.
+- ⏳ **Direct File Readers**: Highly targeted tools (e.g., `openspec_read_active_proposal`) allowing the AI to skip hunting around your directory structure to read active designs.
+- ⏳ **Smart Error Handling**: Coaching the LLM when OpenSpec validations fail (e.g. intercepting terminal errors to output: *"Hey, you forgot the 'Tasks' header in design.md"*).
+
