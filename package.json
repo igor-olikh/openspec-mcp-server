@@ -37,5 +37,9 @@
     "@types/node": "^22.18.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
-  }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ]
 }
