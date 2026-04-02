@@ -2,8 +2,9 @@
 
 [![NPM Version](https://img.shields.io/npm/v/@igor-olikh/openspec-mcp-server?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/@igor-olikh/openspec-mcp-server)
 [![NPM Downloads](https://img.shields.io/npm/dt/@igor-olikh/openspec-mcp-server?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/@igor-olikh/openspec-mcp-server)
+[![Official Site](https://img.shields.io/badge/Official%20Site-openspec.dev-blue?style=for-the-badge)](https://openspec.dev/)
 
-Welcome! This is a simple bridge (plugin) that connects **[OpenSpec](https://github.com/Fission-AI/OpenSpec)** to your favorite AI coding assistant (like **IBM Bob**, **Codex**, or **Claude Desktop**).
+Welcome! This is a simple bridge (plugin) that connects **[OpenSpec](https://openspec.dev/)** to your favorite AI coding assistant (like **IBM Bob**, **Codex**, or **Claude Desktop**).
 
 ## What is this and why do I need it?
 When you want your AI to build a new feature, you usually just type it into the chat. But as projects grow, the AI can forget things, get confused, or write messy code.
