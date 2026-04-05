@@ -1,6 +1,6 @@
 {
   "name": "@igor-olikh/openspec-mcp-server",
-  "version": "2.1.4",
+  "version": "2.1.5",
   "description": "An MCP server that connects OpenSpec to AI assistants like Codex, Claude, and Cursor.",
   "main": "dist/index.js",
   "type": "module",
