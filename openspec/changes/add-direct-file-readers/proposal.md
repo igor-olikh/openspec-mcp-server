@@ -35,6 +35,8 @@ Tools that mutate state (`init`, `new_change`, `archive`, `validate`, `update`) 
 
 ## Trade-offs
 
+**Name collisions:** A change and a spec can share the same name (e.g., after archiving). The cache uses composite keys (`change:auth`, `spec:auth`) to store both. The `openspec_read_file` tool accepts an optional `type` parameter to disambiguate; when omitted, it prefers changes over specs (the more common lookup in active development).
+
 **Coupling:** The server now encodes knowledge of OpenSpec's directory layout (`openspec/changes/{name}/proposal.md`). If Fission AI changes this structure, direct reads break while CLI-wrapped tools adapt automatically. Mitigation: derive paths from `.openspec.yaml` metadata rather than hardcoding, and version-check the layout on init.
 
 **Cache staleness:** If something outside the server modifies the OpenSpec directory (manual file edits, git operations), the cache won't reflect it. Mitigation: add an `openspec_refresh_cache` tool the AI can call when it detects stale data, and auto-refresh on any mutating tool call.

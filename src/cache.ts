@@ -9,8 +9,22 @@ export interface OpenSpecEntry {
 }
 
 export interface OpenSpecCache {
-  entries: Map<string, OpenSpecEntry>;
+  entries: Map<string, OpenSpecEntry>;  // keyed as "change:name" or "spec:name"
   lastRefresh: number;     // Date.now() timestamp
+}
+
+/** Build a composite cache key to avoid collisions between changes and specs with the same name */
+export function cacheKey(type: 'change' | 'spec', name: string): string {
+  return `${type}:${name}`;
+}
+
+/** Look up a cache entry by name, with optional type filter. If type is omitted, prefers changes over specs. */
+export function lookupEntry(cache: OpenSpecCache, name: string, type?: 'change' | 'spec'): OpenSpecEntry | undefined {
+  if (type) {
+    return cache.entries.get(cacheKey(type, name));
+  }
+  // Default: prefer change, fall back to spec
+  return cache.entries.get(cacheKey('change', name)) ?? cache.entries.get(cacheKey('spec', name));
 }
 
 export function buildCache(projectPath: string): OpenSpecCache {
@@ -52,7 +66,7 @@ export function refreshCache(cache: OpenSpecCache, projectPath: string): void {
             .filter(dirent => dirent.isFile())
             .map(dirent => dirent.name);
 
-          cache.entries.set(name, {
+          cache.entries.set(cacheKey(type, name), {
             name,
             type,
             path: entryPath,
@@ -68,8 +82,8 @@ export function refreshCache(cache: OpenSpecCache, projectPath: string): void {
   }
 }
 
-export function readSpecFile(cache: OpenSpecCache, projectPath: string, name: string, fileType: string): string | null {
-  const entry = cache.entries.get(name);
+export function readSpecFile(cache: OpenSpecCache, projectPath: string, name: string, fileType: string, type?: 'change' | 'spec'): string | null {
+  const entry = lookupEntry(cache, name, type);
   if (!entry) return null;
   if (!entry.files.includes(fileType)) return null;
 

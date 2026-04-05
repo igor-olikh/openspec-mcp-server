@@ -25,10 +25,23 @@ interface OpenSpecEntry {
 }
 
 interface OpenSpecCache {
-  entries: Map<string, OpenSpecEntry>;
+  entries: Map<string, OpenSpecEntry>;  // keyed as "change:name" or "spec:name"
   lastRefresh: number;     // Date.now() timestamp
 }
 ```
+
+### Key Design: Composite Cache Keys
+
+Cache entries are keyed as `${type}:${name}` (e.g. `"change:auth"`, `"spec:auth"`) to prevent name collisions. Since OpenSpec's workflow archives changes into specs, a change and spec with the same name can coexist. A flat name-only key would cause the spec to silently overwrite the change.
+
+Two helper functions manage lookups:
+
+**`cacheKey(type: 'change' | 'spec', name: string): string`**
+- Returns the composite key `"type:name"`
+
+**`lookupEntry(cache: OpenSpecCache, name: string, type?: 'change' | 'spec'): OpenSpecEntry | undefined`**
+- If `type` is provided, does an exact lookup via `cacheKey(type, name)`
+- If `type` is omitted, prefers changes over specs (returns the change entry if both exist)
 
 ### Functions
 
@@ -42,8 +55,8 @@ interface OpenSpecCache {
 - Rebuilds the cache in-place (mutates the existing Map)
 - Called automatically after any mutating tool (`openspec_init`, `openspec_new_change`, `openspec_archive`, `openspec_update`)
 
-**`readSpecFile(cache: OpenSpecCache, projectPath: string, name: string, fileType: string): string | null`**
-- Looks up the entry in cache by name
+**`readSpecFile(cache: OpenSpecCache, projectPath: string, name: string, fileType: string, type?: 'change' | 'spec'): string | null`**
+- Looks up the entry via `lookupEntry` (respects optional type filter)
 - Resolves the file path: `${entry.path}/${fileType}`
 - Reads and returns content via `fs.readFileSync(path, 'utf-8')`
 - Returns `null` if entry or file doesn't exist
@@ -64,6 +77,11 @@ interface OpenSpecCache {
         type: 'string',
         description: 'File to read',
         enum: ['proposal.md', 'design.md', 'tasks.md', '.openspec.yaml']
+      },
+      type: {
+        type: 'string',
+        description: 'Item type to disambiguate if a change and spec share the same name. If omitted, prefers changes.',
+        enum: ['change', 'spec']
       }
     },
     required: ['name', 'fileType']
@@ -100,7 +118,7 @@ export async function handleToolCall(
 
 New switch cases:
 
-- **`openspec_read_file`**: calls `readSpecFile(cache, cwd, args.name, args.fileType)`, returns content or "file not found" error
+- **`openspec_read_file`**: calls `lookupEntry` then `readSpecFile(cache, cwd, args.name, args.fileType, args.type)`, returns content or "file not found" error. Optional `type` param disambiguates when a change and spec share the same name.
 - **`openspec_refresh_cache`**: calls `refreshCache(cache, cwd)`, returns confirmation
 - **`openspec_list`** (modified): when `args.json !== false`, serves from cache instead of CLI. Falls back to CLI if cache is empty.
 

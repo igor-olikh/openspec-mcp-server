@@ -4,11 +4,13 @@
 - [x] Create `src/cache.ts` with `OpenSpecCache` interface and `OpenSpecEntry` type
 - [x] Implement `buildCache(projectPath)` — scan `openspec/changes/` and `openspec/specs/`, populate Map
 - [x] Implement `refreshCache(cache, projectPath)` — clear and rebuild the Map in-place
-- [x] Implement `readSpecFile(cache, projectPath, name, fileType)` — lookup + `fs.readFileSync`
+- [x] Implement `readSpecFile(cache, projectPath, name, fileType, type?)` — lookup + `fs.readFileSync`
 - [x] Handle edge cases: missing `openspec/` dir, empty directories, unreadable files
+- [x] Use composite cache keys (`type:name`) to prevent name collisions between changes and specs
+- [x] Add `cacheKey()` and `lookupEntry()` helpers with change-over-spec default preference
 
 ## Phase 2: Tool Registration
-- [x] Add `openspec_read_file` tool definition in `getTools()` with name, fileType params and enum constraint
+- [x] Add `openspec_read_file` tool definition in `getTools()` with name, fileType, and optional type params
 - [x] Add `openspec_refresh_cache` tool definition in `getTools()`
 - [x] Update `ListToolsRequestSchema` handler if needed (currently auto-picks up from `getTools()`)
 

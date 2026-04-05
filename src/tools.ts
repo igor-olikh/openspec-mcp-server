@@ -1,7 +1,7 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { OpenSpecCache, readSpecFile, refreshCache } from './cache.js';
+import { OpenSpecCache, readSpecFile, refreshCache, lookupEntry } from './cache.js';
 
 const execAsync = promisify(exec);
 
@@ -133,6 +133,11 @@ export function getTools(): Tool[] {
             type: 'string',
             description: 'File to read',
             enum: ['proposal.md', 'design.md', 'tasks.md', '.openspec.yaml']
+          },
+          type: {
+            type: 'string',
+            description: 'Item type to disambiguate if a change and spec share the same name. If omitted, prefers changes.',
+            enum: ['change', 'spec']
           }
         },
         required: ['name', 'fileType']
@@ -236,15 +241,15 @@ export async function handleToolCall(name: string, args: any, cwd: string, cache
       return await runOpenSpec(cmdArgs);
     }
     case 'openspec_read_file': {
-      const entry = cache.entries.get(args.name);
+      const entry = lookupEntry(cache, args.name, args.type);
       if (!entry) {
         return { success: false, message: `No change or spec named '${args.name}' found. Run openspec_list to see available items.` };
       }
-      const content = readSpecFile(cache, cwd, args.name, args.fileType);
+      const content = readSpecFile(cache, cwd, args.name, args.fileType, args.type);
       if (content === null) {
         return { success: false, message: `File '${args.fileType}' does not exist for '${args.name}'. Available files: ${entry.files.join(', ')}` };
       }
-      return { success: true, stdout: content, message: `Read ${args.fileType} from ${args.name}` };
+      return { success: true, stdout: content, message: `Read ${args.fileType} from ${entry.type}:${args.name}` };
     }
     case 'openspec_refresh_cache': {
       refreshCache(cache, cwd);
