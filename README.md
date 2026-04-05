@@ -111,6 +111,11 @@ This server exposes the official `@fission-ai/openspec` CLI commands as Model Co
 - `openspec_show`: Reads a specific task.
 - `openspec_update`: Updates OpenSpec rules.
 - `openspec_instructions`: Reads AI instructions for building parts of the plan.
+- `openspec_read_file`: Reads any spec artifact directly by name and file type — much faster than `show`, no subprocess overhead.
+- `openspec_refresh_cache`: Force-refreshes the cached directory listing if files changed outside OpenSpec tools.
+
+**Built-in Prompts:**
+- `openspec_kickoff`: A pre-made prompt that steers the AI into a strict spec-driven workflow from the first turn. Automatically injected when supported by the AI assistant.
 
 ### Development Setup
 If you want to modify this server's code:
@@ -120,11 +125,13 @@ If you want to modify this server's code:
 
 ---
 
-## Upcoming Features (Planned via OpenSpec)
-This server is actively evolving! The following features are currently being designed utilizing OpenSpec and will be implemented soon:
+## Recent Changes
 
-- ⏳ **Built-in MCP Prompts**: A pre-made "cheat sheet" standard prompt (e.g., `openspec_kickoff`) that automatically injects massive hidden rules into your AI, steering it to behave perfectly when generating structured features.
-- ⏳ **Structured JSON Outputs**: Replacing raw, colorful terminal output with parsed JavaScript objects, preventing the AI from misreading states and reducing hallucinations.
-- ⏳ **Direct File Readers**: Highly targeted tools (e.g., `openspec_read_active_proposal`) allowing the AI to skip hunting around your directory structure to read active designs.
-- ⏳ **Smart Error Handling**: Coaching the LLM when OpenSpec validations fail (e.g. intercepting terminal errors to output: *"Hey, you forgot the 'Tasks' header in design.md"*).
+- **Built-in MCP Prompts**: The `openspec_kickoff` prompt automatically steers your AI into a strict spec-driven workflow from the first turn.
+- **Direct File Readers with In-Memory Cache**: New `openspec_read_file` tool reads spec artifacts directly via the filesystem, bypassing CLI subprocess overhead. An in-memory cache of the directory structure serves `list` queries in under 1ms. Cache auto-refreshes after any mutating operation.
+
+## Upcoming Features (Planned via OpenSpec)
+
+- **Structured JSON Outputs**: Replacing raw terminal output with parsed JavaScript objects, preventing the AI from misreading states and reducing hallucinations.
+- **Smart Error Handling**: Coaching the LLM when OpenSpec validations fail (e.g. intercepting terminal errors to output: *"Hey, you forgot the 'Tasks' header in design.md"*).
 
