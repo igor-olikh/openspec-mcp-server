@@ -9,9 +9,11 @@ import {
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
 import { getTools, handleToolCall } from './tools.js';
+import { buildCache, OpenSpecCache } from './cache.js';
 
 export class OpenSpecMCPServer {
   private server: Server;
+  private cache: OpenSpecCache | null = null;
   public projectPath: string = process.cwd();
 
   constructor() {
@@ -78,7 +80,7 @@ Follow this workflow exactly:
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       try {
-        const result = await handleToolCall(request.params.name, request.params.arguments || {}, this.projectPath);
+        const result = await handleToolCall(request.params.name, request.params.arguments || {}, this.projectPath, this.cache!);
         return {
           content: [
             {
@@ -98,6 +100,7 @@ Follow this workflow exactly:
 
   async initialize(projectPath: string) {
     this.projectPath = projectPath;
+    this.cache = buildCache(projectPath);
 
     // Connect to stdio transport
     const transport = new StdioServerTransport();

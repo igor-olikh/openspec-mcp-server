@@ -1,6 +1,7 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { OpenSpecCache, readSpecFile, refreshCache } from './cache.js';
 
 const execAsync = promisify(exec);
 
@@ -120,11 +121,36 @@ export function getTools(): Tool[] {
         },
         required: ['artifact']
       }
+    },
+    {
+      name: 'openspec_read_file',
+      description: 'Read any OpenSpec artifact directly. Much faster than show — use this when you need file contents.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Change or spec name (e.g. "add-dark-mode")' },
+          fileType: {
+            type: 'string',
+            description: 'File to read',
+            enum: ['proposal.md', 'design.md', 'tasks.md', '.openspec.yaml']
+          }
+        },
+        required: ['name', 'fileType']
+      }
+    },
+    {
+      name: 'openspec_refresh_cache',
+      description: 'Force refresh the cached directory listing. Use if you suspect changes were made outside OpenSpec tools.',
+      inputSchema: {
+        type: 'object',
+        properties: {},
+        required: []
+      }
     }
   ];
 }
 
-export async function handleToolCall(name: string, args: any, cwd: string): Promise<ToolExecutionResult> {
+export async function handleToolCall(name: string, args: any, cwd: string, cache: OpenSpecCache): Promise<ToolExecutionResult> {
   const runOpenSpec = async (callArgs: string[]): Promise<ToolExecutionResult> => {
     const cmd = `${OPENSPEC_CMD} ${callArgs.join(' ')}`;
     try {
@@ -142,12 +168,28 @@ export async function handleToolCall(name: string, args: any, cwd: string): Prom
 
   switch (name) {
     case 'openspec_init': {
-      return await runOpenSpec(['init', '--no-interactive']);
+      const res = await runOpenSpec(['init', '--no-interactive']);
+      refreshCache(cache, cwd);
+      return res;
     }
     case 'openspec_update': {
-      return await runOpenSpec(['update']);
+      const res = await runOpenSpec(['update']);
+      refreshCache(cache, cwd);
+      return res;
     }
     case 'openspec_list': {
+      if (args.json !== false && cache && cache.entries.size > 0) {
+        const typeFilter = args.specs ? 'spec' : 'change';
+        const items = Array.from(cache.entries.values())
+          .filter(e => e.type === typeFilter)
+          .map(e => ({ name: e.name, type: e.type, files: e.files }));
+        
+        return { 
+          success: true, 
+          stdout: JSON.stringify({ [args.specs ? 'specs' : 'changes']: items }, null, 2),
+          message: 'Served from cache' 
+        };
+      }
       const cmdArgs = ['list'];
       if (args.specs) cmdArgs.push('--specs');
       if (args.json !== false) cmdArgs.push('--json');
@@ -170,12 +212,16 @@ export async function handleToolCall(name: string, args: any, cwd: string): Prom
     case 'openspec_archive': {
       const cmdArgs = ['archive', `"${args.changeName}"`, '--yes'];
       if (args.skipSpecs) cmdArgs.push('--skip-specs');
-      return await runOpenSpec(cmdArgs);
+      const res = await runOpenSpec(cmdArgs);
+      refreshCache(cache, cwd);
+      return res;
     }
     case 'openspec_new_change': {
       const cmdArgs = ['new', 'change', `"${args.name}"`];
       if (args.description) cmdArgs.push('--description', `"${args.description}"`);
-      return await runOpenSpec(cmdArgs);
+      const res = await runOpenSpec(cmdArgs);
+      refreshCache(cache, cwd);
+      return res;
     }
     case 'openspec_status': {
       const cmdArgs = ['status'];
@@ -188,6 +234,21 @@ export async function handleToolCall(name: string, args: any, cwd: string): Prom
       if (args.changeName) cmdArgs.push('--change', `"${args.changeName}"`);
       if (args.json !== false) cmdArgs.push('--json');
       return await runOpenSpec(cmdArgs);
+    }
+    case 'openspec_read_file': {
+      const entry = cache.entries.get(args.name);
+      if (!entry) {
+        return { success: false, message: `No change or spec named '${args.name}' found. Run openspec_list to see available items.` };
+      }
+      const content = readSpecFile(cache, cwd, args.name, args.fileType);
+      if (content === null) {
+        return { success: false, message: `File '${args.fileType}' does not exist for '${args.name}'. Available files: ${entry.files.join(', ')}` };
+      }
+      return { success: true, stdout: content, message: `Read ${args.fileType} from ${args.name}` };
+    }
+    case 'openspec_refresh_cache': {
+      refreshCache(cache, cwd);
+      return { success: true, message: 'Cache refreshed successfully.' };
     }
     default:
       return { success: false, message: `Unknown tool: ${name}` };
