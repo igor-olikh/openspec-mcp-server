@@ -21,7 +21,17 @@ export function getTools(): Tool[] {
       description: 'Initialize OpenSpec in your project',
       inputSchema: {
         type: 'object',
-        properties: {},
+        properties: {
+          tools: {
+            type: 'string',
+            description: 'AI tools to configure non-interactively. Use "all", "none", or a comma-separated list (e.g. "claude,cursor,codex"). Defaults to "claude".',
+            default: 'claude'
+          },
+          force: {
+            type: 'boolean',
+            description: 'Auto-cleanup legacy files without prompting'
+          }
+        },
         required: []
       }
     },
@@ -103,10 +113,10 @@ export function getTools(): Tool[] {
       inputSchema: {
         type: 'object',
         properties: {
-          changeName: { type: 'string', description: 'Change name to show status for' },
+          changeName: { type: 'string', description: 'Change name to show status for (required by current CLI)' },
           json: { type: 'boolean', description: 'Output as JSON', default: true }
         },
-        required: []
+        required: ['changeName']
       }
     },
     {
@@ -173,7 +183,10 @@ export async function handleToolCall(name: string, args: any, cwd: string, cache
 
   switch (name) {
     case 'openspec_init': {
-      const res = await runOpenSpec(['init', '--no-interactive']);
+      const tools = typeof args.tools === 'string' && args.tools.length > 0 ? args.tools : 'claude';
+      const cmdArgs = ['init', '--tools', `"${tools}"`];
+      if (args.force) cmdArgs.push('--force');
+      const res = await runOpenSpec(cmdArgs);
       refreshCache(cache, cwd);
       return res;
     }
@@ -183,24 +196,30 @@ export async function handleToolCall(name: string, args: any, cwd: string, cache
       return res;
     }
     case 'openspec_list': {
-      if (args.json !== false && cache && cache.entries.size > 0) {
-        const typeFilter = args.specs ? 'spec' : 'change';
-        const items = Array.from(cache.entries.values())
-          .filter(e => e.type === typeFilter)
-          .map(e => ({ name: e.name, type: e.type, files: e.files }));
-        
-        return { 
-          success: true, 
-          stdout: JSON.stringify({ [args.specs ? 'specs' : 'changes']: items }, null, 2),
-          message: 'Served from cache' 
-        };
-      }
-      const cmdArgs = ['list'];
-      if (args.specs) cmdArgs.push('--specs');
-      if (args.json !== false) cmdArgs.push('--json');
-      return await runOpenSpec(cmdArgs);
+      const typeFilter: 'change' | 'spec' = args.specs ? 'spec' : 'change';
+      const items = Array.from(cache.entries.values())
+        .filter(e => e.type === typeFilter)
+        .map(e => ({ name: e.name, type: e.type, files: e.files }));
+
+      return {
+        success: true,
+        stdout: JSON.stringify({ [args.specs ? 'specs' : 'changes']: items }, null, 2),
+        message: items.length === 0
+          ? `No ${typeFilter}s found in openspec/ (cwd: ${cwd}). Run openspec_init if the project is not initialized yet.`
+          : 'Served from cache'
+      };
     }
     case 'openspec_show': {
+      const entry = lookupEntry(cache, args.itemName, args.type);
+      if (!entry) {
+        const available = Array.from(cache.entries.values())
+          .filter(e => !args.type || e.type === args.type)
+          .map(e => `${e.type}:${e.name}`);
+        return {
+          success: false,
+          message: `No ${args.type ?? 'change or spec'} named '${args.itemName}' found. Available: ${available.length > 0 ? available.join(', ') : '(none)'}`
+        };
+      }
       const cmdArgs = ['show', `"${args.itemName}"`];
       if (args.type) cmdArgs.push('--type', args.type);
       if (args.json !== false) cmdArgs.push('--json');
@@ -229,8 +248,16 @@ export async function handleToolCall(name: string, args: any, cwd: string, cache
       return res;
     }
     case 'openspec_status': {
-      const cmdArgs = ['status'];
-      if (args.changeName) cmdArgs.push('--change', `"${args.changeName}"`);
+      if (!args.changeName) {
+        const changes = Array.from(cache.entries.values())
+          .filter(e => e.type === 'change')
+          .map(e => e.name);
+        return {
+          success: false,
+          message: `openspec_status requires 'changeName'. Available changes: ${changes.length > 0 ? changes.join(', ') : '(none)'}`
+        };
+      }
+      const cmdArgs = ['status', '--change', `"${args.changeName}"`];
       if (args.json !== false) cmdArgs.push('--json');
       return await runOpenSpec(cmdArgs);
     }

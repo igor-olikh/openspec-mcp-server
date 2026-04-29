@@ -14,6 +14,7 @@ import { buildCache, OpenSpecCache } from './cache.js';
 export class OpenSpecMCPServer {
   private server: Server;
   private cache: OpenSpecCache | null = null;
+  private stopping: boolean = false;
   public projectPath: string = process.cwd();
 
   constructor() {
@@ -102,7 +103,6 @@ Follow this workflow exactly:
     this.projectPath = projectPath;
     this.cache = buildCache(projectPath);
 
-    // Connect to stdio transport
     const transport = new StdioServerTransport();
 
     transport.onclose = async () => {
@@ -110,21 +110,16 @@ Follow this workflow exactly:
       process.exit(0);
     };
 
-    await this.server.connect(transport);
-    
-    process.stdin.on('end', async () => {
-      await this.stop();
-      process.exit(0);
-    });
+    transport.onerror = (error) => {
+      console.error('Transport error:', error);
+    };
 
-    process.stdin.on('error', async (error) => {
-      console.error('stdin error:', error);
-      await this.stop();
-      process.exit(1);
-    });
+    await this.server.connect(transport);
   }
 
   async stop() {
+    if (this.stopping) return;
+    this.stopping = true;
     try {
       await this.server.close();
     } catch (error) {
